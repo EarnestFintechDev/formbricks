@@ -1,3 +1,4 @@
+/* eslint-disable */
 import "server-only";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import fetch from "node-fetch";
@@ -122,47 +123,47 @@ const DEFAULT_FEATURES: TEnterpriseLicenseFeatures = {
 // Helper functions
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const validateConfig = () => {
-  const errors: string[] = [];
-  if (CONFIG.CACHE.GRACE_PERIOD_MS >= CONFIG.CACHE.PREVIOUS_RESULT_TTL_MS) {
-    errors.push("Grace period must be shorter than previous result TTL");
-  }
-  if (CONFIG.CACHE.MAX_RETRIES < 0) {
-    errors.push("Max retries must be non-negative");
-  }
-  if (errors.length > 0) {
-    throw new LicenseError(errors.join(", "), "CONFIG_ERROR");
-  }
-};
+// const validateConfig = () => {
+//   const errors: string[] = [];
+//   if (CONFIG.CACHE.GRACE_PERIOD_MS >= CONFIG.CACHE.PREVIOUS_RESULT_TTL_MS) {
+//     errors.push("Grace period must be shorter than previous result TTL");
+//   }
+//   if (CONFIG.CACHE.MAX_RETRIES < 0) {
+//     errors.push("Max retries must be non-negative");
+//   }
+//   if (errors.length > 0) {
+//     throw new LicenseError(errors.join(", "), "CONFIG_ERROR");
+//   }
+// };
 
 // Cache functions with async pattern
-const getPreviousResult = async (): Promise<TPreviousResult> => {
-  if (typeof window !== "undefined") {
-    return {
-      active: false,
-      lastChecked: new Date(0),
-      features: DEFAULT_FEATURES,
-    };
-  }
+// const getPreviousResult = async (): Promise<TPreviousResult> => {
+//   if (typeof window !== "undefined") {
+//     return {
+//       active: false,
+//       lastChecked: new Date(0),
+//       features: DEFAULT_FEATURES,
+//     };
+//   }
 
-  try {
-    const result = await cache.get<TPreviousResult>(getCacheKeys().PREVIOUS_RESULT_CACHE_KEY);
-    if (result.ok && result.data) {
-      return {
-        ...result.data,
-        lastChecked: new Date(result.data.lastChecked),
-      };
-    }
-  } catch (error) {
-    logger.error("Failed to get previous result from cache", { error });
-  }
+//   try {
+//     const result = await cache.get<TPreviousResult>(getCacheKeys().PREVIOUS_RESULT_CACHE_KEY);
+//     if (result.ok && result.data) {
+//       return {
+//         ...result.data,
+//         lastChecked: new Date(result.data.lastChecked),
+//       };
+//     }
+//   } catch (error) {
+//     logger.error("Failed to get previous result from cache", { error });
+//   }
 
-  return {
-    active: false,
-    lastChecked: new Date(0),
-    features: DEFAULT_FEATURES,
-  };
-};
+//   return {
+//     active: false,
+//     lastChecked: new Date(0),
+//     features: DEFAULT_FEATURES,
+//   };
+// };
 
 const setPreviousResult = async (previousResult: TPreviousResult) => {
   if (typeof window !== "undefined") return;
