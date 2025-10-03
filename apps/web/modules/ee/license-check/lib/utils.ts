@@ -58,6 +58,7 @@ const getSpecificFeatureFlag = async (
     | "quotas"
   >
 ): Promise<boolean> => {
+  console.log(featureKey);
   return true;
   // const licenseFeatures = await getLicenseFeatures();
   // if (!licenseFeatures) return false;

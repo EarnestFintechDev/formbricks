@@ -33,11 +33,11 @@ const CONFIG = {
 // Types
 type FallbackLevel = "live" | "cached" | "grace" | "default";
 
-type TPreviousResult = {
-  active: boolean;
-  lastChecked: Date;
-  features: TEnterpriseLicenseFeatures | null;
-};
+// type TPreviousResult = {
+//   active: boolean;
+//   lastChecked: Date;
+//   features: TEnterpriseLicenseFeatures | null;
+// };
 
 // Validation schemas
 const LicenseFeaturesSchema = z.object({
@@ -103,22 +103,22 @@ export const getCacheKeys = () => {
 };
 
 // Default features
-const DEFAULT_FEATURES: TEnterpriseLicenseFeatures = {
-  isMultiOrgEnabled: false,
-  projects: 3,
-  twoFactorAuth: false,
-  sso: false,
-  whitelabel: false,
-  removeBranding: false,
-  contacts: false,
-  ai: false,
-  saml: false,
-  spamProtection: false,
-  auditLogs: false,
-  multiLanguageSurveys: false,
-  accessControl: false,
-  quotas: false,
-};
+// const DEFAULT_FEATURES: TEnterpriseLicenseFeatures = {
+//   isMultiOrgEnabled: false,
+//   projects: 3,
+//   twoFactorAuth: false,
+//   sso: false,
+//   whitelabel: false,
+//   removeBranding: false,
+//   contacts: false,
+//   ai: false,
+//   saml: false,
+//   spamProtection: false,
+//   auditLogs: false,
+//   multiLanguageSurveys: false,
+//   accessControl: false,
+//   quotas: false,
+// };
 
 // Helper functions
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -165,30 +165,30 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 //   };
 // };
 
-const setPreviousResult = async (previousResult: TPreviousResult) => {
-  if (typeof window !== "undefined") return;
+// const setPreviousResult = async (previousResult: TPreviousResult) => {
+//   if (typeof window !== "undefined") return;
 
-  try {
-    const result = await cache.set(
-      getCacheKeys().PREVIOUS_RESULT_CACHE_KEY,
-      previousResult,
-      CONFIG.CACHE.PREVIOUS_RESULT_TTL_MS
-    );
-    if (!result.ok) {
-      logger.warn("Failed to cache previous result", { error: result.error });
-    }
-  } catch (error) {
-    logger.error("Failed to set previous result in cache", { error });
-  }
-};
+//   try {
+//     const result = await cache.set(
+//       getCacheKeys().PREVIOUS_RESULT_CACHE_KEY,
+//       previousResult,
+//       CONFIG.CACHE.PREVIOUS_RESULT_TTL_MS
+//     );
+//     if (!result.ok) {
+//       logger.warn("Failed to cache previous result", { error: result.error });
+//     }
+//   } catch (error) {
+//     logger.error("Failed to set previous result in cache", { error });
+//   }
+// };
 
 // Monitoring functions
-const trackFallbackUsage = (level: FallbackLevel) => {
-  logger.info(`Using license fallback level: ${level}`, {
-    fallbackLevel: level,
-    timestamp: new Date().toISOString(),
-  });
-};
+// const trackFallbackUsage = (level: FallbackLevel) => {
+//   logger.info(`Using license fallback level: ${level}`, {
+//     fallbackLevel: level,
+//     timestamp: new Date().toISOString(),
+//   });
+// };
 
 const trackApiError = (error: LicenseApiError) => {
   logger.error(`License API error: ${error.message}`, {
@@ -199,45 +199,45 @@ const trackApiError = (error: LicenseApiError) => {
 };
 
 // Validation functions
-const validateFallback = (previousResult: TPreviousResult): boolean => {
-  if (!previousResult.features) return false;
-  if (previousResult.lastChecked.getTime() === new Date(0).getTime()) return false;
-  return true;
-};
+// const validateFallback = (previousResult: TPreviousResult): boolean => {
+//   if (!previousResult.features) return false;
+//   if (previousResult.lastChecked.getTime() === new Date(0).getTime()) return false;
+//   return true;
+// };
 
 const validateLicenseDetails = (data: unknown): TEnterpriseLicenseDetails => {
   return LicenseDetailsSchema.parse(data);
 };
 
 // Fallback functions
-const getFallbackLevel = (
-  liveLicense: TEnterpriseLicenseDetails | null,
-  previousResult: TPreviousResult,
-  currentTime: Date
-): FallbackLevel => {
-  if (liveLicense) return "live";
-  if (previousResult.active) {
-    const elapsedTime = currentTime.getTime() - previousResult.lastChecked.getTime();
-    return elapsedTime < CONFIG.CACHE.GRACE_PERIOD_MS ? "grace" : "default";
-  }
-  return "default";
-};
+// const getFallbackLevel = (
+//   liveLicense: TEnterpriseLicenseDetails | null,
+//   previousResult: TPreviousResult,
+//   currentTime: Date
+// ): FallbackLevel => {
+//   if (liveLicense) return "live";
+//   if (previousResult.active) {
+//     const elapsedTime = currentTime.getTime() - previousResult.lastChecked.getTime();
+//     return elapsedTime < CONFIG.CACHE.GRACE_PERIOD_MS ? "grace" : "default";
+//   }
+//   return "default";
+// };
 
-const handleInitialFailure = async (currentTime: Date) => {
-  const initialFailResult: TPreviousResult = {
-    active: false,
-    features: DEFAULT_FEATURES,
-    lastChecked: currentTime,
-  };
-  await setPreviousResult(initialFailResult);
-  return {
-    active: false,
-    features: DEFAULT_FEATURES,
-    lastChecked: currentTime,
-    isPendingDowngrade: false,
-    fallbackLevel: "default" as const,
-  };
-};
+// const handleInitialFailure = async (currentTime: Date) => {
+//   const initialFailResult: TPreviousResult = {
+//     active: false,
+//     features: DEFAULT_FEATURES,
+//     lastChecked: currentTime,
+//   };
+//   await setPreviousResult(initialFailResult);
+//   return {
+//     active: false,
+//     features: DEFAULT_FEATURES,
+//     lastChecked: currentTime,
+//     isPendingDowngrade: false,
+//     fallbackLevel: "default" as const,
+//   };
+// };
 
 // API functions
 const fetchLicenseFromServerInternal = async (retryCount = 0): Promise<TEnterpriseLicenseDetails | null> => {
