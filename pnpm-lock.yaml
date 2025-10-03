@@ -26,6 +26,9 @@ importers:
       '@formbricks/eslint-config':
         specifier: workspace:*
         version: link:packages/config-eslint
+      '@formbricks/logger':
+        specifier: workspace:*
+        version: link:packages/logger
       '@playwright/test':
         specifier: 1.52.0
         version: 1.52.0

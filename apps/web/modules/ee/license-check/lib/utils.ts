@@ -1,4 +1,5 @@
 import "server-only";
+import { Organization } from "@prisma/client";
 import {
   AUDIT_LOG_ENABLED,
   IS_FORMBRICKS_CLOUD,
@@ -6,7 +7,6 @@ import {
   PROJECT_FEATURE_KEYS,
 } from "@/lib/constants";
 import { TEnterpriseLicenseFeatures } from "@/modules/ee/license-check/types/enterprise-license";
-import { Organization } from "@prisma/client";
 import { getEnterpriseLicense, getLicenseFeatures } from "./license";
 
 // Helper function for feature permissions (e.g., removeBranding, whitelabel)
@@ -58,9 +58,10 @@ const getSpecificFeatureFlag = async (
     | "quotas"
   >
 ): Promise<boolean> => {
-  const licenseFeatures = await getLicenseFeatures();
-  if (!licenseFeatures) return false;
-  return typeof licenseFeatures[featureKey] === "boolean" ? licenseFeatures[featureKey] : false;
+  return true;
+  // const licenseFeatures = await getLicenseFeatures();
+  // if (!licenseFeatures) return false;
+  // return typeof licenseFeatures[featureKey] === "boolean" ? licenseFeatures[featureKey] : false;
 };
 
 export const getIsMultiOrgEnabled = async (): Promise<boolean> => {

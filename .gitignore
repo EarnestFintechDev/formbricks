@@ -75,3 +75,6 @@ infra/terraform/.terraform/
 packages/ios/FormbricksSDK/FormbricksSDK.xcodeproj/project.xcworkspace/xcuserdata
 .cursorrules
 i18n.cache
+
+/apps/web/.env
+/packages/database/.env
