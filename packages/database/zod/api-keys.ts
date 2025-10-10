@@ -25,6 +25,8 @@ export const ZApiKey = z.object({
   hashedKey: z.string(),
   organizationId: z.string().cuid2(),
   organizationAccess: ZOrganizationAccess,
+  allProjects: z.boolean(),
+  allProjectsPermission: z.nativeEnum(ApiKeyPermission).nullable(),
 }) satisfies z.ZodType<ApiKey>;
 
 export const ZApiKeyCreateInput = z.object({
@@ -33,6 +35,8 @@ export const ZApiKeyCreateInput = z.object({
   environmentIds: z.array(z.string().cuid2()),
   permissions: z.record(z.string().cuid2(), ZApiKeyPermission),
   createdBy: z.string(),
+  allProjects: z.boolean().optional(),
+  allProjectsPermission: ZApiKeyPermission.optional(),
 });
 
 export const ZApiKeyEnvironmentCreateInput = z.object({

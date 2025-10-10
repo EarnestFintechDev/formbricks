@@ -35,6 +35,8 @@ interface AddApiKeyModalProps {
     label: string;
     environmentPermissions: Array<{ environmentId: string; permission: ApiKeyPermission }>;
     organizationAccess: TOrganizationAccess;
+    allProjects?: boolean;
+    allProjectsPermission?: ApiKeyPermission;
   }) => Promise<void>;
   projects: TOrganizationProject[];
   isCreatingAPIKey: boolean;
@@ -96,6 +98,11 @@ export const AddApiKeyModal = ({
 
   // Initialize with one permission by default
   const [selectedPermissions, setSelectedPermissions] = useState<Record<string, PermissionRecord>>({});
+
+  const [allProjectsEnabled, setAllProjectsEnabled] = useState(false);
+  const [allProjectsPermission, setAllProjectsPermission] = useState<ApiKeyPermission>(
+    ApiKeyPermission.read
+  );
 
   const projectOptions: ProjectOption[] = projects.map((project) => ({
     id: project.id,
@@ -160,26 +167,32 @@ export const AddApiKeyModal = ({
   const submitAPIKey = async () => {
     const data = getValues();
 
-    if (checkForDuplicatePermissions()) {
+    if (!allProjectsEnabled && checkForDuplicatePermissions()) {
       toast.error(t("environments.project.api_keys.duplicate_access"));
       return;
     }
 
     // Convert permissions to the format expected by the API
-    const environmentPermissions = Object.values(selectedPermissions).map((permission) => ({
-      environmentId: permission.environmentId,
-      permission: permission.permission,
-    }));
+    const environmentPermissions = allProjectsEnabled
+      ? []
+      : Object.values(selectedPermissions).map((permission) => ({
+          environmentId: permission.environmentId,
+          permission: permission.permission,
+        }));
 
     await onSubmit({
       label: data.label,
       environmentPermissions,
       organizationAccess: selectedOrganizationAccess,
+      allProjects: allProjectsEnabled,
+      allProjectsPermission: allProjectsEnabled ? allProjectsPermission : undefined,
     });
 
     reset();
     setSelectedPermissions({});
     setSelectedOrganizationAccess(defaultOrganizationAccess);
+    setAllProjectsEnabled(false);
+    setAllProjectsPermission(ApiKeyPermission.read);
   };
 
   // Get environment options for a project
@@ -194,8 +207,8 @@ export const AddApiKeyModal = ({
       return true;
     }
 
-    // Check if at least one project permission is set or one organization access toggle is ON
-    const hasProjectAccess = Object.keys(selectedPermissions).length > 0;
+    // Check if at least one project permission is set or one organization access toggle is ON or all projects is enabled
+    const hasProjectAccess = Object.keys(selectedPermissions).length > 0 || allProjectsEnabled;
 
     const hasOrganizationAccess = Object.values(selectedOrganizationAccess).some((accessGroup) =>
       Object.values(accessGroup).some((value) => value === true)
@@ -232,8 +245,56 @@ export const AddApiKeyModal = ({
             </div>
 
             <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>All Projects Access</Label>
+                <Switch
+                  checked={allProjectsEnabled}
+                  onCheckedChange={(checked) => {
+                    setAllProjectsEnabled(checked);
+                    if (checked) {
+                      setSelectedPermissions({});
+                    }
+                  }}
+                />
+              </div>
+              {allProjectsEnabled && (
+                <div className="space-y-2">
+                  <Label>Permission Level</Label>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        type="button"
+                        className="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none">
+                        <span className="flex w-4/5 flex-1">
+                          <span className="w-full truncate text-left capitalize">
+                            {allProjectsPermission}
+                          </span>
+                        </span>
+                        <span className="flex h-full items-center border-l pl-3">
+                          <ChevronDownIcon className="h-4 w-4 text-slate-500" />
+                        </span>
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="min-w-[8rem] capitalize">
+                      {permissionOptions.map((option) => (
+                        <DropdownMenuItem key={option} onClick={() => setAllProjectsPermission(option)}>
+                          {option}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <p className="text-sm text-slate-500">
+                    This API key will have {allProjectsPermission} access to all current and future projects
+                    in this organization.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
               <Label>{t("environments.project.api_keys.project_access")}</Label>
-              <div className="space-y-2">
+              {!allProjectsEnabled ? (
+                <div className="space-y-2">
                 {/* Permission rows */}
                 {Object.keys(selectedPermissions).map((key) => {
                   const permissionIndex = parseInt(key.split("-")[1]);
@@ -344,6 +405,11 @@ export const AddApiKeyModal = ({
                   <span className="mr-2">+</span> {t("environments.settings.api_keys.add_permission")}
                 </Button>
               </div>
+              ) : (
+                <p className="text-sm text-slate-500">
+                  All projects access is enabled. Individual project permissions are not needed.
+                </p>
+              )}
             </div>
 
             <div className="space-y-4">

@@ -70,6 +70,15 @@ export const getApiKeyWithPermissions = reactCache(async (apiKey: string) => {
             },
           },
         },
+        organization: {
+          include: {
+            projects: {
+              include: {
+                environments: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -84,6 +93,31 @@ export const getApiKeyWithPermissions = reactCache(async (apiKey: string) => {
         lastUsedAt: new Date(),
       },
     });
+
+    if (apiKeyData.allProjects && apiKeyData.allProjectsPermission) {
+      const allEnvironments = apiKeyData.organization.projects.flatMap((project) =>
+        project.environments.map((env) => ({
+          id: apiKeyData.id + "-" + env.id,
+          apiKeyId: apiKeyData.id,
+          environmentId: env.id,
+          permission: apiKeyData.allProjectsPermission!,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          environment: {
+            ...env,
+            project: {
+              id: project.id,
+              name: project.name,
+            },
+          },
+        }))
+      );
+
+      return {
+        ...apiKeyData,
+        apiKeyEnvironments: allEnvironments,
+      };
+    }
 
     return apiKeyData;
   } catch (error) {
@@ -123,6 +157,8 @@ export const createApiKey = async (
   apiKeyData: TApiKeyCreateInput & {
     environmentPermissions?: Array<{ environmentId: string; permission: ApiKeyPermission }>;
     organizationAccess: TOrganizationAccess;
+    allProjects?: boolean;
+    allProjectsPermission?: ApiKeyPermission;
   }
 ): Promise<TApiKeyWithEnvironmentPermission & { actualKey: string }> => {
   validateInputs([organizationId, ZId], [apiKeyData, ZApiKeyCreateInput]);
@@ -131,7 +167,13 @@ export const createApiKey = async (
     const hashedKey = hashApiKey(key);
 
     // Extract environmentPermissions from apiKeyData
-    const { environmentPermissions, organizationAccess, ...apiKeyDataWithoutPermissions } = apiKeyData;
+    const {
+      environmentPermissions,
+      organizationAccess,
+      allProjects,
+      allProjectsPermission,
+      ...apiKeyDataWithoutPermissions
+    } = apiKeyData;
 
     // Create the API key
     const result = await prisma.apiKey.create({
@@ -141,7 +183,9 @@ export const createApiKey = async (
         createdBy: userId,
         organization: { connect: { id: organizationId } },
         organizationAccess,
-        ...(environmentPermissions && environmentPermissions.length > 0
+        allProjects: allProjects || false,
+        allProjectsPermission: allProjectsPermission || null,
+        ...(environmentPermissions && environmentPermissions.length > 0 && !allProjects
           ? {
               apiKeyEnvironments: {
                 create: environmentPermissions.map((envPerm) => ({

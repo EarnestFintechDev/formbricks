@@ -18,6 +18,8 @@ export const ZApiKeyCreateInput = ZApiKey.required({
   .extend({
     environmentPermissions: z.array(ZApiKeyEnvironmentPermission).optional(),
     organizationAccess: ZOrganizationAccess,
+    allProjects: z.boolean().optional(),
+    allProjectsPermission: z.nativeEnum(ApiKeyPermission).optional(),
   });
 
 export type TApiKeyCreateInput = z.infer<typeof ZApiKeyCreateInput>;
