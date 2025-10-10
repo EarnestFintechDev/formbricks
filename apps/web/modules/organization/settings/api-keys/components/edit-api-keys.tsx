@@ -65,6 +65,8 @@ export const EditAPIKeys = ({ organizationId, apiKeys, locale, isReadOnly, proje
     label: string;
     environmentPermissions: Array<{ environmentId: string; permission: ApiKeyPermission }>;
     organizationAccess: TOrganizationAccess;
+    allProjects?: boolean;
+    allProjectsPermission?: ApiKeyPermission;
   }): Promise<void> => {
     setIsLoading(true);
     const createApiKeyResponse = await createApiKeyAction({
@@ -73,6 +75,8 @@ export const EditAPIKeys = ({ organizationId, apiKeys, locale, isReadOnly, proje
         label: data.label,
         environmentPermissions: data.environmentPermissions,
         organizationAccess: data.organizationAccess,
+        allProjects: data.allProjects,
+        allProjectsPermission: data.allProjectsPermission,
       },
     });
 
